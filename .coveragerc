@@ -1,0 +1,16 @@
+[paths]
+source =
+   src/manet
+   */site-packages/manet
+
+[run]
+branch = true
+source =
+    manet
+    tests
+parallel = true
+
+[report]
+show_missing = true
+precision = 2
+omit = *migrations*
