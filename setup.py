@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# encoding: utf-8
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -76,9 +76,9 @@ setup(
     author='Jonas Teuwen',
     author_email='jonas.teuwen@github.io',
     url='https://github.com/jonasteuwen/manet',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-    py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
+    packages=find_packages('manet'),
+    package_dir={'': 'manet'},
+    py_modules=[splitext(basename(path))[0] for path in glob('manet/*.py')],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
