@@ -76,9 +76,8 @@ setup(
     author='Jonas Teuwen',
     author_email='jonas.teuwen@github.io',
     url='https://github.com/jonasteuwen/manet',
-    packages=find_packages('manet'),
-    package_dir={'': 'manet'},
-    py_modules=[splitext(basename(path))[0] for path in glob('manet/*.py')],
+    packages=find_packages(),
+    py_modules=[splitext(basename(path))[0] for path in glob('*.py')],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
@@ -98,10 +97,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
-        # uncomment if you test on these interpreters:
-        # 'Programming Language :: Python :: Implementation :: IronPython',
-        # 'Programming Language :: Python :: Implementation :: Jython',
-        # 'Programming Language :: Python :: Implementation :: Stackless',
         'Topic :: Utilities',
     ],
     keywords=[
