@@ -12,7 +12,7 @@ except ImportError:
     yml_loader = yaml.Loader
 
 
-def write_yml(input_dict, yml_path):
+def write_yml(input_dict, filename):
     """Writes a dictionary to a yml 2.0 file.
 
     See: https://stackoverflow.com/a/40227545
@@ -20,37 +20,45 @@ def write_yml(input_dict, yml_path):
     sorted_dict = yaml.comments.CommentedMap()
     for k in sorted(input_dict):
         sorted_dict[k] = input_dict[k]
-    yaml.round_trip_dump(sorted_dict, open(yml_path, 'w'))
+    yaml.round_trip_dump(sorted_dict, open(filename, 'w'))
 
 
-def read_yml(input_yml):
+def read_yml(filename):
     """Reads yml 2.0 file and outputs a dictionary.
     """
-    out = yaml.load(open(input_yml, 'r'), Loader=yml_loader)
+    out = yaml.load(open(filename, 'r'), Loader=yml_loader)
     if not out:
         return dict()
     return out
 
 
-def write_json(input_dict, json_path):
+def write_json(input_dict, filename):
     """Writes a dictionary to a json file.
     """
-    json.dump(input_dict, open(json_path, 'w'),
+    json.dump(input_dict, open(filename, 'w'),
               sort_keys=True, indent=4)
 
 
-def read_json(json_path):
+def read_json(filename):
     """Reads a json file to dictionary"""
-    json_dict = json.load(open(json_path, 'r'))
+    json_dict = json.load(open(filename, 'r'))
     return json_dict
 
 
-def read_list(list_filename):
+def read_list(filename):
     """Reads file with caseids, separated by line.
     """
-    f = open(list_filename, 'r')
+    f = open(filename, 'r')
     ids = []
     for line in f:
         ids.append(line.strip())
     f.close()
     return ids
+
+
+def write_list(input_list, filename, append=False):
+    """Reads a list of strings and writes the list line by line to a text file."""
+    mode = 'a' if append else 'w'
+    with open(filename, mode) as f:
+        for line in input_list:
+            f.write(line.strip() + '\n')
