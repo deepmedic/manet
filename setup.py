@@ -74,8 +74,8 @@ setup(
         re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
     ),
     author='Jonas Teuwen',
-    author_email='jonas.teuwen@github.io',
-    url='https://github.com/jonasteuwen/manet',
+    author_email='jonasteuwen@github.com',
+    url='https://github.com/deepmedic/manet',
     packages=find_packages(),
     py_modules=[splitext(basename(path))[0] for path in glob('*.py')],
     include_package_data=True,

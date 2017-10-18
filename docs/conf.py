@@ -14,6 +14,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
+    'numpydoc',
 ]
 if os.getenv('SPELLCHECK'):
     extensions += 'sphinxcontrib.spelling',
@@ -31,8 +32,8 @@ version = release = u'0.0.1'
 pygments_style = 'trac'
 templates_path = ['.']
 extlinks = {
-    'issue': ('https://github.com/jonasteuwen/manet/issues/%s', '#'),
-    'pr': ('https://github.com/jonasteuwen/manet/pull/%s', 'PR #'),
+    'issue': ('https://github.com/deepmedic/manet/issues/%s', '#'),
+    'pr': ('https://github.com/deepmedic/manet/pull/%s', 'PR #'),
 }
 # on_rtd is whether we are on readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
