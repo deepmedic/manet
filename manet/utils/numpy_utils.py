@@ -27,5 +27,8 @@ def prob_round(x):
     x[~round_up] = np.floor(x[~round_up])
 
     x = (sign * x).astype(np.int)
+    # If the input is an integer, we need to output an integer.
+    if x.size == 1:
+        x = x[0]
 
     return x

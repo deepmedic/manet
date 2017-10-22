@@ -13,6 +13,18 @@ _DICOM_WINDOW_CENTER_WIDTH_EXPLANATION_TAG = '0028|1055'
 
 
 def apply_window_level(sitk_image, out_range=[0, 255]):
+    """Apply window and level to a SimpleITK image.
+
+    Parameters
+    ----------
+    sitk_image : SimpleITK image instance
+    out_range : tuple or list of new range
+
+    Returns
+    -------
+    SimpleITK image
+    """
+
     center = float(sitk_image.GetMetaData(
         _DICOM_WINDOW_CENTER_TAG).strip())
     width = float(sitk_image.GetMetaData(
@@ -35,7 +47,10 @@ def apply_window_level(sitk_image, out_range=[0, 255]):
 
 
 def read_dcm(filename, window_leveling=True, dtype=None):
-    """Read single dicom files.
+    """Read single dicom files. Tries to apply VOILutFunction if available.
+    Check if the file is a mammogram or not.
+
+    TODO: Rename to read_mammo and rebuild the read_dcm function.
     """
     if not os.path.splitext(filename)[1] == '.dcm':
         raise ValueError('{} should have .dcm as an extension'.format(filename))
