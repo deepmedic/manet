@@ -8,6 +8,7 @@ Contents
    readme
    installation
    usage
+   source/modules
    reference/index
    contributing
    authors
