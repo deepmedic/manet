@@ -24,6 +24,27 @@ def _split_bbox(bbox):
     return bbox_coords, bbox_size
 
 
+def _combine_bbox(bbox_coords, bbox_size):
+    """Combine coordinates and size into a bounding box.
+
+    Parameters:
+    bbox_coords : tuple or ndarray
+    bbox_size : tuple or ndarray
+
+    Returns
+    -------
+    bounding box
+
+    """
+    if not isinstance(bbox_coords, np.ndarray):
+        bbox_coords = np.array(bbox_coords)
+    if not isinstance(bbox_size, np.ndarray):
+        bbox_size = np.array(bbox_size)
+
+    bbox = tuple(bbox_coords.tolist() + bbox_size.tolist())
+    return bbox
+
+
 def extract_patch(image, bbox, pad_value=0):
     """Extract bbox from images, coordinates can be negative.
 
@@ -66,7 +87,7 @@ def extract_patch(image, bbox, pad_value=0):
     return patch
 
 
-def enclosing_bbox(bbox, new_size):
+def resize_bbox(bbox, new_size):
     """Given a bounding box and a requested size return the new bounding box around the center of the old.
     If the coordinate would be non-integer, the value is randomly rounded up or down.
 
@@ -87,6 +108,23 @@ def enclosing_bbox(bbox, new_size):
     bbox_center = bbox_coords - bbox_size / 2.
     new_bbox_coords = prob_round(bbox_center - new_size / 2.)
 
-    new_bbox = tuple(new_bbox_coords.tolist() + new_size.tolist())
+    new_bbox = _combine_bbox(new_bbox_coords, new_size)
     return new_bbox
 
+
+def symmetric_com_bbox(bbox, center_of_mass):
+    """Given a sample with a bounding box and a center of mass,
+    the smallest box containing the bounding box around the center
+    of mass is returned."""
+    bbox_coords, bbox_size = _split_bbox(bbox)
+
+    # Compute the maximal distance between the center of mass and the bbox.
+    max_dist = np.max([
+        (center_of_mass - bbox_coords).max(),
+        (bbox_coords + bbox_size - center_of_mass).max()
+    ])
+
+    new_size = (2*max_dist + 1)*np.ones(bbox_size, dtype=int)
+    new_bbox_coords = center_of_mass - max_dist*np.ones(bbox_size, dtype=int)
+    new_bbox = _combine_bbox(new_bbox_coords, new_size)
+    return new_bbox
