@@ -1,7 +1,6 @@
 # encoding: utf-8
 import numpy as np
-from manet.utils import extract_patch, cast_numpy
-from manet.utils.bbox_utils import _combine_bbox, _split_bbox
+from manet.utils.bbox_utils import _combine_bbox
 
 
 def bounding_box(mask):
