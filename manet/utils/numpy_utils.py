@@ -2,6 +2,12 @@
 import numpy as np
 
 
+def cast_numpy(arr):
+    if not isinstance(arr, np.ndarray):
+        arr = np.array(arr)
+    return arr
+
+
 def prob_round(x):
     """Function to randomly round up or down.
     The part closest to the nearest integer is used as the probability to
