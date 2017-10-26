@@ -75,5 +75,6 @@ def find_contour(mask, tolerance=0):
         new_end = np.array([point_end[0], mask.shape[1] - 1])
 
     contour = np.vstack([new_start, contour, new_end, new_start])
+    contour = approximate_polygon(contour, tolerance)
 
     return contour
