@@ -1,49 +1,10 @@
 # encoding: utf-8
 from __future__ import division
 import numpy as np
-from manet.utils import prob_round
-
-
-def _split_bbox(bbox):
-    """Split bbox into coordinates and size
-
-    Parameters
-    ----------
-    bbox : tuple or ndarray. Given dimension n, first n coordinates are the starting point, the other n the size.
-
-    Returns
-    -------
-    coordinates and size, both ndarrays.
-    """
-    if not isinstance(bbox, np.ndarray):
-        bbox = np.array(bbox)
-
-    ndim = int(len(bbox) / 2)
-    bbox_coords = bbox[:ndim]
-    bbox_size = bbox[ndim:]
-    return bbox_coords, bbox_size
-
-
-def _combine_bbox(bbox_coords, bbox_size):
-    """Combine coordinates and size into a bounding box.
-
-    Parameters:
-    bbox_coords : tuple or ndarray
-    bbox_size : tuple or ndarray
-
-    Returns
-    -------
-    bounding box
-
-    """
-    if not isinstance(bbox_coords, np.ndarray):
-        bbox_coords = np.array(bbox_coords)
-    if not isinstance(bbox_size, np.ndarray):
-        bbox_size = np.array(bbox_size)
-
-    bbox = tuple(bbox_coords.tolist() + bbox_size.tolist())
-    return bbox
-
+from manet.utils import prob_round, read_dcm
+from manet.utils import cast_numpy
+from manet.utils.bbox_utils import _split_bbox, _combine_bbox
+from manet.utils.mask_utils import random_mask_idx, bounding_box
 
 def extract_patch(image, bbox, pad_value=0):
     """Extract bbox from images, coordinates can be negative.
@@ -87,7 +48,7 @@ def extract_patch(image, bbox, pad_value=0):
     return patch
 
 
-def resize_bbox(bbox, new_size):
+def rebuild_bbox(bbox, new_size):
     """Given a bounding box and a requested size return the new bounding box around the center of the old.
     If the coordinate would be non-integer, the value is randomly rounded up or down.
 
@@ -101,8 +62,7 @@ def resize_bbox(bbox, new_size):
     -------
     New bounding box.
     """
-    if not isinstance(new_size, np.ndarray):
-        new_size = np.array(new_size)
+    new_size = cast_numpy(new_size)
 
     bbox_coords, bbox_size = _split_bbox(bbox)
     bbox_center = bbox_coords - bbox_size / 2.
@@ -112,19 +72,73 @@ def resize_bbox(bbox, new_size):
     return new_bbox
 
 
-def symmetric_com_bbox(bbox, center_of_mass):
-    """Given a sample with a bounding box and a center of mass,
-    the smallest box containing the bounding box around the center
-    of mass is returned."""
+def sym_bbox_from_bbox(point, bbox):
+    """Given a a bounding box and a point,
+    the smallest box containing the bounding box around that
+    point is returned."""
     bbox_coords, bbox_size = _split_bbox(bbox)
 
     # Compute the maximal distance between the center of mass and the bbox.
     max_dist = np.max([
-        (center_of_mass - bbox_coords).max(),
-        (bbox_coords + bbox_size - center_of_mass).max()
+        (point - bbox_coords).max(),
+        (bbox_coords + bbox_size - point).max()
     ])
 
     new_size = (2*max_dist + 1)*np.ones(bbox_size, dtype=int)
-    new_bbox_coords = center_of_mass - max_dist*np.ones(bbox_size, dtype=int)
+    new_bbox_coords = point - max_dist*np.ones(bbox_size, dtype=int)
     new_bbox = _combine_bbox(new_bbox_coords, new_size)
     return new_bbox
+
+
+def sym_bbox_from_point(point, bbox_size):
+    """Given a size and a point, the symmetric bounding box around that point is returned.
+    If there is ambiguity due to floats, the result is randomly rounded."""
+    bbox_size = cast_numpy(bbox_size)
+    point = cast_numpy(point)
+    bbox_coords = prob_round(point - bbox_size / 2.)
+    bbox = _combine_bbox(bbox_coords, bbox_size)
+    return bbox
+
+
+def sample_from_mask(mask, avoid, num_tries=100):
+    """A random index is sampled for a mask in the non-zero values.
+    As a first try, num_tries iterations randomly select a point and if found,
+    proceeds. This is more efficient than finding all possible non-zero
+    values which is O(n x m). If this fails within num_tries iterators, we look
+    through all non-positive indices. Otherwise, we look through all
+    possible indexes.
+
+    Parameters
+    ----------
+    mask : str or ndarray
+        Path to file containing mask or ndarray.
+
+    Returns
+    -------
+    An index sampled within the mask.
+    """
+    if isinstance(mask, basestring):
+        mask, _ = read_dcm(mask, window_leveling=False, dtype=int)
+
+    bbox = bounding_box(mask)
+    mask = extract_patch(mask, bbox)
+
+    i = 0
+    rand_idx = None
+    while i < num_tries:
+        # We sample up to a part of the edge
+        rand_idx = tuple(
+            [np.random.randint(x, y) for x, y
+             in zip(avoid, mask.shape - avoid)])
+        if mask[rand_idx] != 0:
+            break
+        i += 1
+    # If that didn't work, we unfortunately have to do a full search.
+    # Here we do not try to avoid the edge.
+    if not rand_idx:
+        rand_idx = random_mask_idx(mask)
+
+    bbox_coords, _ = _split_bbox(bbox)
+    rand_idx = cast_numpy(bbox_coords)
+    idx = tuple(rand_idx + bbox_coords)
+    return idx
