@@ -83,7 +83,7 @@ def read_dcm(filename, window_leveling=True, dtype=None):
                 '{}: {}'.format(filename, e))
 
     metadata = dict()
-    metadata['filename'] = filename
+    metadata['filename'] = os.path.abspath(filename)
     metadata['depth'] = sitk_image.GetDepth()
     metadata['modality'] = 'n/a' if not modality else modality
     metadata['spacing'] = sitk_image.GetSpacing()
