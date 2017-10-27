@@ -3,6 +3,7 @@ import numpy as np
 from manet.utils.bbox_utils import _combine_bbox
 from manet._shared.utils import assert_nD, assert_binary
 from skimage.measure import find_contours, approximate_polygon
+from scipy.spatial import Delaunay
 
 
 def bounding_box(mask):
@@ -57,8 +58,8 @@ def find_contour(mask, tolerance=0):
     if np.all(contour[0] == contour[-1]):
         return contour
 
+    # Otherwise we close the contour
     # Check if mask is to the left or right
-    # Find most left point
     point_0 = contour[0]
     point_1 = contour[1]
     point_end = contour[-1]
@@ -78,3 +79,9 @@ def find_contour(mask, tolerance=0):
     contour = approximate_polygon(contour, tolerance)
 
     return contour
+
+
+def triangulate_polygon(polygon):
+    """Triangulate a given polyon
+    """
+    pass
