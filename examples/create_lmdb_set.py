@@ -27,7 +27,7 @@ def write_kv_to_lmdb(db, key, value):
 
 def write_data_to_lmdb(db, key, image, metadata):
     """Write image data to db."""
-    write_kv_to_lmdb(db, key, image.ascontiguous().tobytes())
+    write_kv_to_lmdb(db, key, image.ascontiguousarray().tobytes())
     meta_key = key + '_metadata'
     ser_meta = json.dumps(metadata)
     write_kv_to_lmdb(db, meta_key, ser_meta)
