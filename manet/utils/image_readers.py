@@ -103,3 +103,46 @@ def read_dcm(filename, window_leveling=True, dtype=None):
             '{}: Modality {} not implemented'.format(filename, modality))
 
     return data, metadata
+
+
+def read_dcm_series(path, series_id=None):
+    """Read dicom series from a folder. If multiple dicom series are availabe in the folder,
+    no image is returned. The metadata dictionary then contains the SeriesIDs which can be selected.
+
+    Parameters
+    ----------
+    path : str
+        path to folder containing the series
+    series_ids : str
+        SeriesID to load
+
+    Returns
+    -------
+    metadata dictionary and image as ndarray.
+    """
+
+    if not os.path.isdir(path):
+        raise ValueError('{} is not a directory'.format(path))
+
+    metadata = {}
+    reader = sitk.ImageSeriesReader()
+    series_ids = list(reader.GetGDCMSeriesIDs(path.encode('utf-8')))
+    metadata['series_ids'] = series_ids
+    if len(series_ids) > 1 and not series_ids:
+        image = None
+        return image, metadata
+
+    fns = reader.GetGDCMSeriesFileNames(
+        path.encode('utf-8'), series_id or series_ids[0])
+    reader.SetFileNames(fns)
+    sitk_image = reader.Execute()
+
+    metadata['filenames'] = fns
+    metadata['depth'] = sitk_image.GetDepth()
+    # metadata['modality'] = 'n/a' if not modality else modality
+    metadata['spacing'] = tuple(sitk_image.GetSpacing()[::-1])
+
+    data = sitk.GetArrayFromImage(sitk_image)
+    metadata['shape'] = tuple(data.shape)
+
+    return data, metadata
