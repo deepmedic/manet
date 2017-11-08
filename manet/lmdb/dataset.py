@@ -47,7 +47,7 @@ class LmdbDb(object):
             buf = txn.get(key)
             meta_buf = txn.get(key + '_metadata')
 
-        metadata = json.load(str(meta_buf))
+        metadata = json.loads(str(meta_buf))
         dtype = metadata['dtype']
         shape = metadata['shape']
         data = np.ndarray(shape, dtype, buffer=buf)

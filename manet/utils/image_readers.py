@@ -119,6 +119,12 @@ def read_dcm_series(path, series_id=None):
     Returns
     -------
     metadata dictionary and image as ndarray.
+
+    TODO
+    ----
+    Catch errors such as
+    WARNING: In /tmp/SimpleITK-build/ITK/Modules/IO/GDCM/src/itkGDCMSeriesFileNames.cxx, line 109
+    GDCMSeriesFileNames (0x4a6e830): No Series were found
     """
 
     if not os.path.isdir(path):

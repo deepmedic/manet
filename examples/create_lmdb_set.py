@@ -40,6 +40,9 @@ def build_db(path, image_folders):
     for key, folder in tqdm(image_folders):
         try:
             data, metadata = read_dcm_series(folder)
+            # If dataset is written to LMDB,
+            # we do not need the filenames anymore.
+            metadata.pop('filenames', None)
             metadata['dtype'] = '{}'.format(data.dtype)
             write_data_to_lmdb(db, key, data, metadata)
         except Exception as e:
