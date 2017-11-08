@@ -43,6 +43,8 @@ def build_db(path, image_folders):
             # If dataset is written to LMDB,
             # we do not need the filenames anymore.
             metadata.pop('filenames', None)
+            series_ids = metadata.pop('series_ids', None)
+            metadata['series_id'] = series_ids[0]
             metadata['dtype'] = '{}'.format(data.dtype)
             write_data_to_lmdb(db, key, data, metadata)
         except Exception as e:
