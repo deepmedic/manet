@@ -2,6 +2,7 @@
 import lmdb
 from tqdm import tqdm
 import simplejson as json
+import numpy as np
 from manet.utils import read_dcm_series
 
 
@@ -27,7 +28,7 @@ def write_kv_to_lmdb(db, key, value):
 
 def write_data_to_lmdb(db, key, image, metadata):
     """Write image data to db."""
-    write_kv_to_lmdb(db, key, image.ascontiguousarray().tobytes())
+    write_kv_to_lmdb(db, key, np.ascontiguousarray(image).tobytes())
     meta_key = key + '_metadata'
     ser_meta = json.dumps(metadata)
     write_kv_to_lmdb(db, meta_key, ser_meta)
@@ -37,5 +38,9 @@ def build_db(path, image_folders):
     """Build LMDB with images."""
     db = lmdb.open(path, map_async=True, max_dbs=0)
     for key, folder in tqdm(image_folders):
-        data, metadata = read_dcm_series(folder)
-        write_data_to_lmdb(db, key, data, metadata)
+        try:
+            data, metadata = read_dcm_series(folder)
+            metadata['dtype'] = data.dtype
+            write_data_to_lmdb(db, key, data, metadata)
+        except Exception as e:
+            tqdm.write('{} failed: {}'.format(path, e))
