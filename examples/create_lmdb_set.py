@@ -40,7 +40,7 @@ def build_db(path, image_folders):
     for key, folder in tqdm(image_folders):
         try:
             data, metadata = read_dcm_series(folder)
-            metadata['dtype'] = data.dtype
+            metadata['dtype'] = '{}'.format(data.dtype)
             write_data_to_lmdb(db, key, data, metadata)
         except Exception as e:
             tqdm.write('{} failed: {}'.format(path, e))
