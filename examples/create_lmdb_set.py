@@ -1,9 +1,10 @@
 """Tools to write dicom series to a LMDB file."""
 import lmdb
+import os
 from tqdm import tqdm
 import simplejson as json
 import numpy as np
-from manet.utils import read_dcm_series
+from manet.utils import read_dcm_series, write_list
 
 
 def write_kv_to_lmdb(db, key, value):
@@ -34,16 +35,27 @@ def write_data_to_lmdb(db, key, image, metadata):
     write_kv_to_lmdb(db, meta_key, ser_meta)
 
 
-def build_db(path, image_folders):
+def build_db(path, db_name, image_folders, generate_keys=False):
     """Build LMDB with images."""
-    db = lmdb.open(path, map_async=True, max_dbs=0)
+    db = lmdb.open(os.path.join(path, db_name), map_async=True, max_dbs=0)
+    if generate_keys:
+        keys_filename = os.path.join(path, db_name + '_keys.lst')
+        write_list(
+            [], keys_filename, header=['LMDB keys for db {}'.format(db_name)])
+
     for key, folder in tqdm(image_folders):
         try:
             data, metadata = read_dcm_series(folder)
             # If dataset is written to LMDB,
             # we do not need the filenames anymore.
             metadata.pop('filenames', None)
+            series_ids = metadata.pop('series_ids', None)
+            if series_ids:
+                metadata['series_id'] = series_ids[0]
             metadata['dtype'] = '{}'.format(data.dtype)
             write_data_to_lmdb(db, key, data, metadata)
+            if generate_keys:
+                write_list([key], keys_filename, append=True)
+
         except Exception as e:
             tqdm.write('{} failed: {}'.format(path, e))

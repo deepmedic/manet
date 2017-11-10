@@ -53,12 +53,23 @@ def read_list(filename):
     for line in f:
         ids.append(line.strip())
     f.close()
+
+    # If the first line begins with '===' it is a header.
+    if '===BEGIN DESCRIPTION===' == ids[0]:
+        for i, _ in enumerate(ids):
+            if _ == '===END DESCRIPTION===':
+                break
+        ids = ids[i + 1:]
     return ids
 
 
-def write_list(input_list, filename, append=False):
+def write_list(input_list, filename, header=None, append=False):
     """Reads a list of strings and writes the list line by line to a text file."""
     mode = 'a' if append else 'w'
     with open(filename, mode) as f:
+        if header and not append:
+            header = ['===BEGIN DESCRIPTION==='] + header
+            header += ['===END DESCRIPTION===']
+            input_list = header + input_list
         for line in input_list:
             f.write(line.strip() + '\n')
