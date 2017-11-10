@@ -1,3 +1,5 @@
+"""An example on how to generate an LMDB set."""
+
 import os
 import glob2
 from create_lmdb_set import build_db
