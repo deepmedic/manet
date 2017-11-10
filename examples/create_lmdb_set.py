@@ -52,6 +52,7 @@ def build_db(path, db_name, image_folders, generate_keys=False):
             series_ids = metadata.pop('series_ids', None)
             if series_ids:
                 metadata['series_id'] = series_ids[0]
+
             metadata['dtype'] = '{}'.format(data.dtype)
             write_data_to_lmdb(db, key, data, metadata)
             if generate_keys:
