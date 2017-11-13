@@ -35,7 +35,7 @@ def write_data_to_lmdb(db, key, image, metadata):
     write_kv_to_lmdb(db, meta_key, ser_meta)
 
 
-def build_db(path, db_name, image_folders, generate_keys=False):
+def build_db(path, db_name, image_folders, generate_keys=False, dtype='int32'):
     """Build LMDB with images."""
     db = lmdb.open(os.path.join(path, db_name), map_async=True, max_dbs=0)
     if generate_keys:
@@ -46,6 +46,7 @@ def build_db(path, db_name, image_folders, generate_keys=False):
     for key, folder in tqdm(image_folders):
         try:
             data, metadata = read_dcm_series(folder)
+            data = data.astype(dtype)
             # If dataset is written to LMDB,
             # we do not need the filenames anymore.
             metadata.pop('filenames', None)
