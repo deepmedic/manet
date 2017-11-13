@@ -1,48 +1,63 @@
 # encoding: utf-8
 import os
-import os.path
-import sys
+import copy
 import lmdb
 import numpy as np
 import simplejson as json
-if sys.version_info[0] == 2:
-    import cPickle as pickle
-else:
-    import pickle
+from manet.utils import write_list, read_list
 
 
 class LmdbDb(object):
-    def __init__(self, lmdb_path):
+    def __init__(self, path, db_name):
         """Load an LMDB database, containing a dataset.
 
         The dataset should be structured as image_id: binary representing the contiguous block.
         If image_id is available we also need image_id_metadata which is a json parseble dictionary.
         This dictionary should contains the key 'shape' representing the shape and 'dtype'.
 
+        If the keys file is available, the file is loaded, otherwise generated.
+
         Parameters
         ----------
-        lmdb_path : str
-            Path to LMDB database.
-
+        path : str
+            Path to folder with LMDB db.
+        db_name : str
+            Name of the database.
 
         """
-        self.lmdb_path = os.path.abspath(
-            os.path.expanduser(lmdb_path))
+        lmdb_path = os.path.join(path, db_name)
+        lmdb_keys_path = os.path.join(path, db_name + '_keys.lst')
+        self.lmdb_path = lmdb_path
         self.env = lmdb.open(lmdb_path, max_readers=None, readonly=True, lock=False,
                              readahead=False, meminit=False)
         with self.env.begin(write=False) as txn:
             self.length = txn.stat()['entries']
-        cache_file = '_cache_' + lmdb_path.replace(os.path.sep, '_')
-        if os.path.isfile(cache_file):
-            self.keys = pickle.load(open(cache_file, 'r'))
+
+        if os.path.isfile(lmdb_keys_path):
+            self._keys = read_list(lmdb_keys_path)
         else:
+            # The keys file does not exist, we will generate one, but this can take a while.
             with self.env.begin(write=False) as txn:
-                self.keys = [key for key, _ in txn.cursor() if '_metadata' not in key]
-            pickle.dump(self.keys, open(cache_file, 'w'))
+                keys = [key for key, _ in txn.cursor() if '_metadata' not in key]
+                write_list(keys, lmdb_keys_path, header=['LMDB keys for db {}'.format(db_name)])
+                self._keys = keys
+
+    def __delitem__(self, key):
+        idx = self._keys.index[key]
+        self._keys.pop(idx, None)
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def has_key(self, key):
+        return key in self._keys
+
+    def keys(self):
+        return self._keys
 
     def __getitem__(self, key):
         with self.env.begin(buffers=True, write=False) as txn:
-            if key not in self.keys:
+            if key not in self._keys:
                 raise KeyError(key)
             buf = txn.get(key)
             meta_buf = txn.get(key + '_metadata')
