@@ -28,18 +28,21 @@ def write_kv_to_lmdb(db, key, value):
 
 def write_data_to_lmdb(db, key, image, metadata):
     """Write image data to db."""
-    write_kv_to_lmdb(db, key, np.ascontiguousarray(image).tobytes())
+    data = np.ascontiguousarray(image).tobytes()
+    write_kv_to_lmdb(db, key)
     meta_key = key + '_metadata'
     ser_meta = json.dumps(metadata)
     write_kv_to_lmdb(db, meta_key, ser_meta)
 
 
-def build_db(path, image_folders):
+def build_db(path, image_folders, dtype='int32'):
     """Build LMDB with images."""
     db = lmdb.open(path, map_async=True, max_dbs=0)
     for key, folder in tqdm(image_folders):
         try:
             data, metadata = read_dcm_series(folder)
+            # Deep learning frameworks expect int32 or the like
+            data = data.astype(dtype)
             # If dataset is written to LMDB,
             # we do not need the filenames anymore.
             metadata.pop('filenames', None)
