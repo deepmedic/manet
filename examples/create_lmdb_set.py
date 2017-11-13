@@ -37,7 +37,8 @@ def write_data_to_lmdb(db, key, image, metadata):
 
 
 def build_db(path, db_name, image_folders, generate_keys=False, dtype='int32'):
-    """Build LMDB with images."""
+    """Build LMDB with images.
+    Mind the dtype, deep learning frameworks expect some particular types."""
     db = lmdb.open(os.path.join(path, db_name), map_async=True, max_dbs=0)
     if generate_keys:
         keys_filename = os.path.join(path, db_name + '_keys.lst')
