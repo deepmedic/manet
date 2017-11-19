@@ -46,11 +46,12 @@ def apply_window_level(sitk_image, out_range=[0, 255]):
     return sitk_image
 
 
-def read_dcm(filename, window_leveling=True, dtype=None):
+def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
     """Read single dicom files. Tries to apply VOILutFunction if available.
     Check if the file is a mammogram or not.
 
     TODO: Rename to read_mammo and rebuild the read_dcm function.
+    TODO: Seperate function to only read the dicom header.
     """
     if not os.path.splitext(filename)[1] == '.dcm':
         raise ValueError('{} should have .dcm as an extension'.format(filename))
@@ -73,6 +74,13 @@ def read_dcm(filename, window_leveling=True, dtype=None):
         raise NotImplementedError(
             '{}: VOILutFunction {} not implemented.'.format(filename, voi_lut_func))
 
+    # Check if kwargs contains extra dicom tags
+    dicom_keys = kwargs.get('dicom_keys', None)
+    extra_metadata = {}
+    if dicom_keys:
+        for k, v in dicom_keys:
+            extra_metadata[k] = sitk_image.GetMetaData(v)
+
     # This needs to be done after reading all tags.
     # The DICOM tags are lost after this operation.
     if window_leveling:
@@ -82,7 +90,8 @@ def read_dcm(filename, window_leveling=True, dtype=None):
             raise NotImplementedError(
                 '{}: {}'.format(filename, e))
 
-    metadata = dict()
+    metadata = {}
+    metadata.update(extra_metadata)
     metadata['filename'] = os.path.abspath(filename)
     metadata['depth'] = sitk_image.GetDepth()
     metadata['modality'] = 'n/a' if not modality else modality
