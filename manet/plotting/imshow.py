@@ -7,9 +7,10 @@ import matplotlib.pyplot as plt
 from skimage.measure import find_contours
 from matplotlib.ticker import NullLocator
 from matplotlib.transforms import Bbox
+import matplotlib.patches as mpatches
 
 
-def plot_2d(image, width=16, dpi=600, mask=None, bboxes=None, linewidth=0.5, mask_color='r', bbox_color='b', save_as=None):
+def plot_2d(image, width=16, dpi=None, mask=None, bboxes=None, linewidth=2, mask_color='r', bbox_color='b', save_as=None):
     """Plot image with contours.
 
     Parameters
@@ -46,7 +47,8 @@ def plot_2d(image, width=16, dpi=600, mask=None, bboxes=None, linewidth=0.5, mas
         add_2d_contours(mask, ax, linewidth, mask_color)
 
     if bboxes is not None:
-        add_2d_bbox(bboxes, linewidth, bbox_color)
+        for bbox in bboxes:
+            add_2d_bbox(bbox, ax, linewidth, bbox_color)
 
     if not save_as:
         plt.show()
@@ -54,12 +56,27 @@ def plot_2d(image, width=16, dpi=600, mask=None, bboxes=None, linewidth=0.5, mas
         fig.gca().set_axis_off()
         fig.gca().xaxis.set_major_locator(NullLocator())
         fig.gca().yaxis.set_major_locator(NullLocator())
-        fig.savefig(save_as, bbox_inches=Bbox([[0, 0], [width, aspect*width]]), pad_inches=0)#, dpi=dpi)
+        fig.savefig(save_as, bbox_inches=Bbox([[0, 0], [width, aspect*width]]), pad_inches=0, dpi=dpi)
         plt.close()
 
 
-def add_2d_bbox(axes, linewidth=0.5, color='b'):
-    raise NotImplementedError('Not yet implemented')
+def add_2d_bbox(bbox, ax, linewidth=0.5, color='b'):
+    """Add bounding box to the image.
+
+    Parameters
+    ----------
+    bbox : tuple
+        Tuple of the form (row, col, height, width).
+    axis : axis object
+    linewidth : float
+        thickness of the overlay lines
+    color : str
+        matplotlib supported color string for contour overlay.
+
+    """
+    rect = mpatches.Rectangle(bbox[:2][::-1], bbox[3], bbox[2],
+                              fill=False, edgecolor=color, linewidth=linewidth)
+    ax.add_patch(rect)
 
 
 def add_2d_contours(mask, axes, linewidth=0.5, color='r'):
@@ -70,11 +87,10 @@ def add_2d_contours(mask, axes, linewidth=0.5, color='r'):
     mask : ndarray
         2D binary array
     axis : axis object
-    color : str
-        matplotlib supported color for bbox overlay
     linewidth : float
-        thickness of the overlay lines    linewidth
-    color
+        thickness of the overlay lines
+    color : str
+        matplotlib supported color string for contour overlay.
 
     TODO: In utils.mask_utils we have function which computes one contour, perhaps these can be merged.
     """
