@@ -59,7 +59,7 @@ Overview
 
 .. end-badges
 
-Manet is a collection of tools for deep learning experiments with mammography, breast tomosynthesis and breast MR.
+Manet is collection of tools to experiment with deep learning and medical images.
 
 * Free software: BSD license
 
