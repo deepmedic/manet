@@ -5,6 +5,7 @@ from manet.utils import read_dcm
 from manet.transform.mask import resize, bounding_box
 from manet.plotting.imshow import plot_2d
 
+
 @click.command()
 @click.argument('image', type=click.Path(exists=True))
 @click.option('--mask', default=None,
