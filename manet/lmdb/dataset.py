@@ -31,7 +31,7 @@ class LmdbDb(object):
         self.env = lmdb.open(lmdb_path, max_readers=None, readonly=True, lock=False,
                              readahead=False, meminit=False)
         with self.env.begin(write=False) as txn:
-            self.length = txn.stat()['entries']
+            self.length = txn.stat()['entries'] // 2
 
         if os.path.isfile(lmdb_keys_path):
             self._keys = read_list(lmdb_keys_path)
