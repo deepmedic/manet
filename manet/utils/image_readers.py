@@ -1,15 +1,52 @@
 # encoding: utf-8
 import SimpleITK as sitk
-import logging
-
 import os
-logger = logging.getLogger(__name__)
 
 _DICOM_MODALITY_TAG = '0008|0060'
 _DICOM_VOI_LUT_FUNCTION = '0028|1056'
 _DICOM_WINDOW_CENTER_TAG = '0028|1050'
 _DICOM_WINDOW_WIDTH_TAG = '0028|1051'
 _DICOM_WINDOW_CENTER_WIDTH_EXPLANATION_TAG = '0028|1055'
+
+
+def read_image(filename, force_2d=False, dtype=None, **kwargs):
+    """Read medical image
+
+    Parameters
+    ----------
+    filename : str
+        Path to image, can be any SimpleITK supported filename
+    force_2d : bool
+        If the image is 2D it can happen the image is presented as 3D but with (height, width, 1),
+        this option reduces the image to 2D.
+    dtype : dtype
+        The requested dtype the output should be cast.
+
+    Returns
+    -------
+    Image as ndarray and dictionary with metadata.
+    """
+    if os.path.splitext(filename)[-1].lower() == '.dcm':
+        image, metadata = read_dcm(filename, **kwargs)
+
+    else:
+        sitk_image = sitk.ReadImage(filename)
+        image = sitk.GetArrayFromImage(sitk_image)
+        if force_2d:
+            if image.ndim == 3 and image.shape[0] == 1:
+                image = image[0]
+            else:
+                raise ValueError('Can only force image to be 2D when the depth is 1.')
+
+        metadata = {}
+        metadata['filename'] = os.path.abspath(filename)
+        metadata['depth'] = sitk_image.GetDepth()
+        metadata['spacing'] = sitk_image.GetSpacing()
+        metadata['shape'] = image.shape
+        if dtype:
+            image = image.astype(dtype)
+
+    return image, metadata
 
 
 def apply_window_level(sitk_image, out_range=[0, 255]):
@@ -50,6 +87,19 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
     """Read single dicom files. Tries to apply VOILutFunction if available.
     Check if the file is a mammogram or not.
 
+    Parameters
+    ----------
+    filename : str
+        Path to dicom file
+    window_leveling : bool
+        Whether to apply the window level settings.
+    dtype : dtype
+        The type the output should be cast.
+
+    Returns
+    -------
+    Image as ndarray and dictionary with metadata
+
     TODO: Rename to read_mammo and rebuild the read_dcm function.
     TODO: Seperate function to only read the dicom header.
     """
@@ -62,8 +112,8 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
         modality = sitk_image.GetMetaData(_DICOM_MODALITY_TAG)
     except RuntimeError as e:  # The key probably does not exist
         modality = None
-        logger.debug('Modality tag {} does not exist: {}'
-                     .format(_DICOM_MODALITY_TAG, e))
+        raise ValueError('Modality tag {} does not exist: {}'
+                         .format(_DICOM_MODALITY_TAG, e))
     try:
         voi_lut_func = sitk_image.GetMetaData(
             _DICOM_VOI_LUT_FUNCTION).strip()

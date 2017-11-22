@@ -43,4 +43,19 @@ def assert_binary(arr, arg_name='image'):
     if arr.sum() == 0:
         raise ValueError(msg_non_zero_array % (arg_name))
 
+def assert_prob(arr, arg_name='probability_map'):
+    """Verify that an array is binary and non-zero.
 
+    Parameters
+    ----------
+    array : array-like
+    arg_name : str, optional
+        The name of the array in the original function.
+    """
+    msg_non_probability_array = "The parameter `%s` has to be a [0, 1]-valued array."
+    msg_non_zero_array = "The parameter `%s` has to be a non-zero array."
+    arr = np.asanyarray(arr)
+    if (not arr.min() >= 0 and arr.max() <= 1):
+        raise ValueError(msg_non_probability_array % (arg_name))
+    if arr.sum() == 0:
+        raise ValueError(msg_non_zero_array % (arg_name))

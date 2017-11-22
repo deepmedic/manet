@@ -2,38 +2,49 @@
 from __future__ import print_function
 from __future__ import division
 
-from manet._shared.utils import assert_nD, assert_binary
+from manet._shared.utils import assert_nD, assert_binary, assert_prob
+from manet.utils import read_image
 import matplotlib.pyplot as plt
 from skimage.measure import find_contours
+from skimage.morphology import square, closing
 from matplotlib.ticker import NullLocator
 from matplotlib.transforms import Bbox
 import matplotlib.patches as mpatches
+import numpy.ma as ma
 
 
-def plot_2d(image, width=16, dpi=None, mask=None, bboxes=None, linewidth=2, mask_color='r', bbox_color='b', save_as=None):
+def plot_2d(image, height=16, dpi=None, mask=None, bboxes=None,
+            overlay=None, linewidth=2, mask_color='r', bbox_color='b', overlay_cmap='jet', overlay_threshold=0.1, overlay_alpha=0.1,
+            overlay_contour_color='g', save_as=None):
     """Plot image with contours.
 
     Parameters
     ----------
     image : ndarray
-        2D image
-    width : float
-        width in inches
+        2D image.
+    height : float
+        height in inches.
     dpi : int
-        dpi when saving image
+        dpi when saving image.
     mask : ndarray
-        binary mask to plot overlay
+        binary mask to plot overlay.
     linewidth : float
-        thickness of the overlay lines
+        thickness of the overlay lines.
     mask_color : str
-        matplotlib supported color for mask overlay
+        matplotlib supported color for mask overlay.
     bbox_color : str
-        matplotlib supported color for bbox overlay
+        matplotlib supported color for bbox overlay.
+    overlay_cmap : str
+        matplotlib support overlay cmap.
+    overlay_threshold : str
+        Threshold value before an overlay value is shown.
+    overlay_alpha : float
+        alpha value for overlay.
     save_as : str
-        path where image will be saved
+        path where image will be saved.
     """
-    aspect = float(image.shape[0]) / image.shape[1]
-    fig, ax = plt.subplots(1, figsize=(width, aspect*width))
+    aspect = float(image.shape[1]) / image.shape[0]
+    fig, ax = plt.subplots(1, figsize=(aspect*height, height))
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
     cmap = None
     if image.ndim == 2:
@@ -50,13 +61,18 @@ def plot_2d(image, width=16, dpi=None, mask=None, bboxes=None, linewidth=2, mask
         for bbox in bboxes:
             add_2d_bbox(bbox, ax, linewidth, bbox_color)
 
+    if overlay is not None:
+        pred, _ = read_image(overlay, force_2d=True)
+        add_2d_overlay(pred, ax, linewidth, threshold=overlay_threshold, cmap=overlay_cmap,
+                       alpha=overlay_alpha, contour_color=overlay_contour_color)
+
     if not save_as:
         plt.show()
     else:
         fig.gca().set_axis_off()
         fig.gca().xaxis.set_major_locator(NullLocator())
         fig.gca().yaxis.set_major_locator(NullLocator())
-        fig.savefig(save_as, bbox_inches=Bbox([[0, 0], [width, aspect*width]]), pad_inches=0, dpi=dpi)
+        fig.savefig(save_as, bbox_inches=Bbox([[0, 0], [aspect*height, height]]), pad_inches=0, dpi=dpi)
         plt.close()
 
 
@@ -85,10 +101,11 @@ def add_2d_contours(mask, axes, linewidth=0.5, color='r'):
     Parameters
     ----------
     mask : ndarray
-        2D binary array
+        2D binary array.
     axis : axis object
+        matplotlib axis object.
     linewidth : float
-        thickness of the overlay lines
+        thickness of the overlay lines.
     color : str
         matplotlib supported color string for contour overlay.
 
@@ -100,3 +117,34 @@ def add_2d_contours(mask, axes, linewidth=0.5, color='r'):
 
     for contour in contours:
         axes.plot(*(contour[:, [1, 0]].T), color=color, linewidth=linewidth)
+
+
+def add_2d_overlay(overlay, ax, linewidth, threshold=0.1, cmap='jet', alpha=0.1, contour_color='g'):
+    """Adds an overlay of the probability map and predicted regions
+
+    overlay : ndarray
+    ax : axis object
+       matplotlib axis object
+    linewidth : float
+       thickness of the overlay lines;
+    threshold : float
+    cmap : str
+       matplotlib supported cmap.
+    alpha : float
+       alpha values for the overlay.
+    contour_color : str
+       matplotlib supported color for the contour.
+
+    """
+    assert_nD(overlay, 2, 'overlay')
+    assert_prob(overlay, 'overlay')
+    if threshold:
+        overlay = ma.masked_where(overlay < threshold, overlay)
+
+    ax.imshow(overlay, cmap=cmap, alpha=alpha)
+
+    if contour_color:
+        mask = closing(overlay.copy(), square(10))
+        mask[mask < threshold] = 0
+        mask[mask >= threshold] = 1
+        add_2d_contours(mask, ax, linewidth=linewidth, color=contour_color)
