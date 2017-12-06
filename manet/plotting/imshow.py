@@ -6,7 +6,7 @@ from manet._shared.utils import assert_nD, assert_binary, assert_prob
 from manet.utils import read_image
 import matplotlib.pyplot as plt
 from skimage.measure import find_contours
-from skimage.morphology import circle, closing
+from skimage.morphology import disk, closing
 from matplotlib.ticker import NullLocator
 from matplotlib.transforms import Bbox
 import matplotlib.patches as mpatches
@@ -147,7 +147,7 @@ def add_2d_overlay(overlay, ax, linewidth, threshold=0.1, cmap='jet', alpha=0.1,
     ax.imshow(overlay, cmap=cmap, alpha=alpha)
 
     if contour_color:
-        mask = closing(overlay.copy(), circle(closing_radius))
+        mask = closing(overlay.copy(), disk(closing_radius))
         mask[mask < threshold] = 0
         mask[mask >= threshold] = 1
         add_2d_contours(mask, ax, linewidth=linewidth, color=contour_color)
