@@ -6,7 +6,7 @@ from manet._shared.utils import assert_nD, assert_binary, assert_prob
 from manet.utils import read_image
 import matplotlib.pyplot as plt
 from skimage.measure import find_contours
-from skimage.morphology import square, closing
+from skimage.morphology import circle, closing
 from matplotlib.ticker import NullLocator
 from matplotlib.transforms import Bbox
 import matplotlib.patches as mpatches
@@ -14,7 +14,8 @@ import numpy.ma as ma
 
 
 def plot_2d(image, height=16, dpi=None, mask=None, bboxes=None,
-            overlay=None, linewidth=2, mask_color='r', bbox_color='b', overlay_cmap='jet', overlay_threshold=0.1, overlay_alpha=0.1,
+            overlay=None, linewidth=2, mask_color='r', bbox_color='b',
+            overlay_cmap='jet', overlay_threshold=0.1, overlay_alpha=0.1,
             overlay_contour_color='g', save_as=None):
     """Plot image with contours.
 
@@ -119,7 +120,7 @@ def add_2d_contours(mask, axes, linewidth=0.5, color='r'):
         axes.plot(*(contour[:, [1, 0]].T), color=color, linewidth=linewidth)
 
 
-def add_2d_overlay(overlay, ax, linewidth, threshold=0.1, cmap='jet', alpha=0.1, contour_color='g'):
+def add_2d_overlay(overlay, ax, linewidth, threshold=0.1, cmap='jet', alpha=0.1, closing_radius=15, contour_color='g'):
     """Adds an overlay of the probability map and predicted regions
 
     overlay : ndarray
@@ -132,6 +133,8 @@ def add_2d_overlay(overlay, ax, linewidth, threshold=0.1, cmap='jet', alpha=0.1,
        matplotlib supported cmap.
     alpha : float
        alpha values for the overlay.
+    closing_radius : int
+       radius for the postprocessing closing
     contour_color : str
        matplotlib supported color for the contour.
 
@@ -144,7 +147,7 @@ def add_2d_overlay(overlay, ax, linewidth, threshold=0.1, cmap='jet', alpha=0.1,
     ax.imshow(overlay, cmap=cmap, alpha=alpha)
 
     if contour_color:
-        mask = closing(overlay.copy(), square(10))
+        mask = closing(overlay.copy(), circle(closing_radius))
         mask[mask < threshold] = 0
         mask[mask >= threshold] = 1
         add_2d_contours(mask, ax, linewidth=linewidth, color=contour_color)
