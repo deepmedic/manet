@@ -22,7 +22,7 @@ from manet.plotting.imshow import plot_2d
 @click.option('--bbox/--no-bbox', default=False, help='Plot bounding box')
 @click.option('--contour/--no-contour', default=True, help='Do not plot contour.')
 @click.option('--threshold', default=0.5, help='Threshold for the overlay')
-@click.option('--alpha', default=0, 'alpha of the overlay.')
+@click.option('--alpha', default=0, help='alpha of the overlay.')
 def write_image(image, mask, overlay, output, height, dpi, linewidth, bbox, contour, threshold, alpha):
     """Write image to disk, given input dcm. Possible to add contours and bounding boxes.
     """
