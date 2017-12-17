@@ -43,6 +43,8 @@ def plot_2d(image, height=16, dpi=None, mask=None, bboxes=None,
         alpha value for overlay.
     save_as : str
         path where image will be saved.
+
+    BUG: Sometimes the output has a white edge to the left of the image.
     """
     aspect = float(image.shape[1]) / image.shape[0]
     fig, ax = plt.subplots(1, figsize=(aspect*height, height))

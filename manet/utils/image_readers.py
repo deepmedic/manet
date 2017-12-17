@@ -41,7 +41,7 @@ def read_image(filename, force_2d=False, dtype=None, **kwargs):
         metadata = {}
         metadata['filename'] = os.path.abspath(filename)
         metadata['depth'] = sitk_image.GetDepth()
-        metadata['spacing'] = sitk_image.GetSpacing()
+        metadata['spacing'] = sitk_image.GetSpacing()[::-1]
         metadata['shape'] = image.shape
         if dtype:
             image = image.astype(dtype)
@@ -145,7 +145,7 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
     metadata['filename'] = os.path.abspath(filename)
     metadata['depth'] = sitk_image.GetDepth()
     metadata['modality'] = 'n/a' if not modality else modality
-    metadata['spacing'] = sitk_image.GetSpacing()
+    metadata['spacing'] = sitk_image.GetSpacing()[::-1]
 
     data = sitk.GetArrayFromImage(sitk_image)
     if dtype:

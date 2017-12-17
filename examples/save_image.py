@@ -44,7 +44,8 @@ def write_image(image, mask, overlay, output, height, dpi, linewidth, bbox, cont
 
     plot_2d(image, height=height, mask=mask_arr, bboxes=bboxes,
             overlay=overlay, overlay_cmap='jet', overlay_alpha=alpha,
-            overlay_threshold=threshold, save_as=output, dpi=dpi, linewidth=linewidth)
+            overlay_contour_color='b', overlay_threshold=threshold,
+            save_as=output, dpi=dpi, linewidth=linewidth)
 
     print('Output written to {}.'.format(output))
 
