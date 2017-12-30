@@ -12,5 +12,4 @@ def prob_map():
     prob, metadata = read_image(curr_path('prediction.nrrd'))
     prob = prob[0]
     metadata['spacing'] = (0.2, 0.2)
-
     return prob, metadata
