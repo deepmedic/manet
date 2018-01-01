@@ -43,6 +43,7 @@ def assert_binary(arr, arg_name='image'):
     if arr.sum() == 0:
         raise ValueError(msg_non_zero_array % (arg_name))
 
+
 def assert_prob(arr, arg_name='probability_map'):
     """Verify that an array is binary and non-zero.
 

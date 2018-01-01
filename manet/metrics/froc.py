@@ -1,4 +1,5 @@
 # encoding: utf-8
+from __future__ import division
 import numpy as np
 import scipy.spatial.distance
 from manet._shared.utils import assert_nD
@@ -14,13 +15,13 @@ def tpr(pred, gt, dist=1, mode='region'):
     Parameters
     ----------
     pred : list or ndarray
-        either a list of lists or a n x 2 ndarray
+        either a list of lists or a n x 2 ndarray.
     gt : list or ndarray
-        either a list of lists or a n x 2 ndarray
+        either a list of lists or a n x 2 ndarray.
     dist : number
         distance between points which are considered as positives or negatives.
     mode : str
-        either `region` or `case`
+        either `region` or `case`.
 
     Returns
     -------
