@@ -13,11 +13,10 @@ def get_peaks(pred, distance, threshold):
 
 def main():
     fig = plt.figure(figsize=(16, 16))
-    pred, metadata = prob_map()
-    spacing = metadata['spacing'][0]
+    pred, metadata = prob_map('one')
     # spacing is in millimeters, we want at least 1.5cm in between.
-    distance = int(15 / spacing)
-    coordinates = get_peaks(pred, distance, 0.8)
+    distance = 37
+    coordinates = get_peaks(pred, distance, 0.5)
     plt.imshow(pred, cmap='gray')
     plt.plot(coordinates[:, 1], coordinates[:, 0], 'r.', markersize=15, alpha=1)
     plt.show()

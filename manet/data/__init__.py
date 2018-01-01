@@ -8,8 +8,8 @@ def curr_path(fn):
     return os.path.join(dirname, fn)
 
 
-def prob_map():
-    prob, metadata = read_image(curr_path('prediction.nrrd'))
+def prob_map(name='one'):
+    prob, metadata = read_image(curr_path('prediction_{}.nrrd'.format(name)))
     prob = prob[0]
     metadata['spacing'] = (0.2, 0.2)
     return prob, metadata

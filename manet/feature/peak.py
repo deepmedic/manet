@@ -21,7 +21,7 @@ def _get_high_intensity_peaks(image, mask, num_peaks):
 
 
 def peak_local_max(image, min_distance=1, threshold=None,
-                   exclude_border=True, indices=True,
+                   exclude_border=False, indices=True,
                    num_peaks=np.inf, footprint=None):
     """Find peaks in an image as coordinate list or boolean mask.
     Peaks are the local maxima in a region of `2 * min_distance + 1`

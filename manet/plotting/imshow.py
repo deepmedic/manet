@@ -4,6 +4,7 @@ from __future__ import division
 
 from manet._shared.utils import assert_nD, assert_binary, assert_prob
 from manet.utils import read_image
+from manet.feature.peak import peak_local_max
 import matplotlib.pyplot as plt
 from skimage.measure import find_contours
 from skimage.morphology import disk, closing
@@ -16,6 +17,7 @@ import numpy.ma as ma
 def plot_2d(image, height=16, dpi=None, mask=None, bboxes=None,
             overlay=None, linewidth=2, mask_color='r', bbox_color='b',
             overlay_cmap='jet', overlay_threshold=0.1, overlay_alpha=0.1,
+            overlay_local_max_min_distance=37, overlay_local_max_color='r',
             overlay_contour_color='g', save_as=None):
     """Plot image with contours.
 
@@ -68,6 +70,9 @@ def plot_2d(image, height=16, dpi=None, mask=None, bboxes=None,
         pred, _ = read_image(overlay, force_2d=True)
         add_2d_overlay(pred, ax, linewidth, threshold=overlay_threshold, cmap=overlay_cmap,
                        alpha=overlay_alpha, contour_color=overlay_contour_color)
+
+    if overlay_local_max_color:
+        add_local_maxima(pred, ax, overlay_local_max_min_distance, overlay_threshold, overlay_local_max_color)
 
     if not save_as:
         plt.show()
@@ -153,3 +158,8 @@ def add_2d_overlay(overlay, ax, linewidth, threshold=0.1, cmap='jet', alpha=0.1,
         mask[mask < threshold] = 0
         mask[mask >= threshold] = 1
         add_2d_contours(mask, ax, linewidth=linewidth, color=contour_color)
+
+
+def add_local_maxima(overlay, ax, min_distance, threshold, overlay_color='r'):
+    coordinates = peak_local_max(overlay, min_distance=min_distance, threshold=threshold)
+    ax.plot(coordinates[:, 1], coordinates[:, 0], overlay_color + '.', markersize=15, alpha=1)
