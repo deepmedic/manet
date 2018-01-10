@@ -156,7 +156,7 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
         # If the image is true mammogram, we reshape.
         if metadata['depth'] == 1:
             data = data.reshape(data.shape[1:])
-            metadata['spacing'] = metadata['spacing'][:2]
+            metadata['spacing'] = metadata['spacing'][1:]
     else:
         raise NotImplementedError(
             '{}: Modality {} not implemented'.format(filename, modality))
