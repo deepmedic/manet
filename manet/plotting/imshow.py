@@ -17,7 +17,7 @@ import numpy.ma as ma
 def plot_2d(image, height=16, dpi=None, mask=None, bboxes=None,
             overlay=None, linewidth=2, mask_color='r', bbox_color='b',
             overlay_cmap='jet', overlay_threshold=0.1, overlay_alpha=0.1,
-            overlay_local_max_min_distance=37, overlay_local_max_color='r',
+            overlay_local_max_min_distance=75, overlay_local_max_color='r',
             overlay_contour_color='g', save_as=None):
     """Plot image with contours.
 
@@ -59,6 +59,7 @@ def plot_2d(image, height=16, dpi=None, mask=None, bboxes=None,
         cmap = 'gray'
 
     ax.imshow(image, cmap=cmap, aspect='equal', extent=(0, image.shape[1], image.shape[0], 0))
+
     if mask is not None:
         add_2d_contours(mask, ax, linewidth, mask_color)
 
@@ -67,12 +68,11 @@ def plot_2d(image, height=16, dpi=None, mask=None, bboxes=None,
             add_2d_bbox(bbox, ax, linewidth, bbox_color)
 
     if overlay is not None:
-        pred, _ = read_image(overlay, force_2d=True)
-        add_2d_overlay(pred, ax, linewidth, threshold=overlay_threshold, cmap=overlay_cmap,
+        add_2d_overlay(overlay, ax, linewidth, threshold=overlay_threshold, cmap=overlay_cmap,
                        alpha=overlay_alpha, contour_color=overlay_contour_color)
 
-    if overlay_local_max_color:
-        add_local_maxima(pred, ax, overlay_local_max_min_distance, overlay_threshold, overlay_local_max_color)
+    if overlay is not None and overlay_local_max_min_distance:
+        add_local_maxima(overlay, ax, overlay_local_max_min_distance, overlay_threshold, overlay_local_max_color)
 
     if not save_as:
         plt.show()
