@@ -12,7 +12,7 @@ except ImportError:
     yml_loader = yaml.Loader
 
 
-def write_yml(input_dict, filename):
+def write_yml(filename, input_dict):
     """Writes a dictionary to a yml 2.0 file.
 
     See: https://stackoverflow.com/a/40227545
@@ -32,7 +32,7 @@ def read_yml(filename):
     return out
 
 
-def write_json(input_dict, filename):
+def write_json(filename, input_dict):
     """Writes a dictionary to a json file.
     """
     json.dump(input_dict, open(filename, 'w'),
@@ -63,7 +63,7 @@ def read_list(filename):
     return ids
 
 
-def write_list(input_list, filename, header=None, append=False):
+def write_list(filename, input_list, header=None, append=False):
     """Reads a list of strings and writes the list line by line to a text file."""
     mode = 'a' if append else 'w'
     with open(filename, mode) as f:
