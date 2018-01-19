@@ -1,6 +1,7 @@
 # encoding: utf-8
 import SimpleITK as sitk
 import os
+import numpy as np
 
 _DICOM_MODALITY_TAG = '0008|0060'
 _DICOM_VOI_LUT_FUNCTION = '0028|1056'
@@ -49,7 +50,7 @@ def read_image(filename, force_2d=False, dtype=None, **kwargs):
     return image, metadata
 
 
-def apply_window_level(sitk_image, out_range=[0, 255]):
+def apply_window_level(sitk_image, voi_lut_fn='LINEAR', out_range=[0, 255], which_explanation=0):
     """Apply window and level to a SimpleITK image.
 
     Parameters
@@ -62,10 +63,83 @@ def apply_window_level(sitk_image, out_range=[0, 255]):
     SimpleITK image
     """
 
-    center = float(sitk_image.GetMetaData(
-        _DICOM_WINDOW_CENTER_TAG).strip())
-    width = float(sitk_image.GetMetaData(
-        _DICOM_WINDOW_WIDTH_TAG).strip())
+    center = sitk_image.GetMetaData(
+        _DICOM_WINDOW_CENTER_TAG).strip()
+    width = sitk_image.GetMetaData(
+        _DICOM_WINDOW_WIDTH_TAG).strip()
+
+    explanation = sitk_image.GetMetaData(
+        _DICOM_WINDOW_CENTER_WIDTH_EXPLANATION_TAG).strip()
+
+    exp_split = explanation.split('\\')
+    if len(exp_split) > 1:
+        c_split = center.split('\\')
+        w_split = width.split('\\')
+        if isinstance(which_explanation, int):
+            idx = which_explanation
+        else:
+            idx = exp_split.index(which_explanation)
+    center = float(c_split[idx])
+    width = float(w_split[idx])
+
+    if voi_lut_fn == 'LINEAR':
+        lower_bound = center - (width - 1)/2
+        upper_bound = center + (width - 1)/2
+    elif voi_lut_fn == 'SIGMOID':
+        origin = sitk_image.GetOrigin()
+        direction = sitk_image.GetDirection()
+        spacing = sitk_image.GetSpacing()
+        arr = sitk.GetArrayFromImage(sitk_image)
+        arr = 1.0 / (1 + np.exp(-4 * (arr - center)/width))
+        sitk_image = sitk.GetImageFromArray(arr)
+        sitk_image.SetOrigin(origin)
+        sitk_image.SetDirection(direction)
+        sitk_image.SetSpacing(spacing)
+
+    sitk_image = sitk.IntensityWindowing(
+        sitk_image, lower_bound, upper_bound,
+        out_range[0], out_range[1])
+    # Recast after intensity windowing.
+    if (out_range[0] >= 0) and (out_range[1] <= 255):
+        pass
+    else:
+        raise NotImplementedError('Only uint8 supported.')
+
+    sitk_image = sitk.Cast(sitk_image, sitk.sitkUInt8)
+    return sitk_image
+
+
+def apply_window_level_sigmoid(sitk_image, out_range=[0, 255], which_explanation=0):
+    """Apply window and level to a SimpleITK image.
+
+    Parameters
+    ----------
+    sitk_image : SimpleITK image instance
+    out_range : tuple or list of new range
+
+    Returns
+    -------
+    SimpleITK image
+    """
+
+    center = sitk_image.GetMetaData(
+        _DICOM_WINDOW_CENTER_TAG).strip()
+    width = sitk_image.GetMetaData(
+        _DICOM_WINDOW_WIDTH_TAG).strip()
+
+    explanation = sitk_image.GetMetaData(
+        _DICOM_WINDOW_CENTER_WIDTH_EXPLANATION_TAG).strip()
+
+    exp_split = explanation.split('\\')
+    if len(exp_split) > 1:
+        c_split = center.split('\\')
+        w_split = width.split('\\')
+        if isinstance(which_explanation, int):
+            idx = which_explanation
+        else:
+            idx = exp_split.index(which_explanation)
+    center = float(c_split[idx])
+    width = float(w_split[idx])
 
     lower_bound = center - (width - 1)/2
     upper_bound = center + (width - 1)/2
@@ -81,6 +155,7 @@ def apply_window_level(sitk_image, out_range=[0, 255]):
 
     sitk_image = sitk.Cast(sitk_image, sitk.sitkUInt8)
     return sitk_image
+
 
 
 def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
@@ -115,14 +190,10 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
         raise ValueError('Modality tag {} does not exist: {}'
                          .format(_DICOM_MODALITY_TAG, e))
     try:
-        voi_lut_func = sitk_image.GetMetaData(
+        voi_lut_fn = sitk_image.GetMetaData(
             _DICOM_VOI_LUT_FUNCTION).strip()
     except RuntimeError:
-        voi_lut_func = 'LINEAR'
-
-    if voi_lut_func != 'LINEAR':
-        raise NotImplementedError(
-            '{}: VOILutFunction {} not implemented.'.format(filename, voi_lut_func))
+        voi_lut_fn = 'LINEAR'
 
     # Check if kwargs contains extra dicom tags
     dicom_keys = kwargs.get('dicom_keys', None)
@@ -135,7 +206,7 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
     # The DICOM tags are lost after this operation.
     if window_leveling:
         try:
-            sitk_image = apply_window_level(sitk_image)
+            sitk_image = apply_window_level(sitk_image, voi_lut_fn)
         except NotImplementedError as e:
             raise NotImplementedError(
                 '{}: {}'.format(filename, e))
