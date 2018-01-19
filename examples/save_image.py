@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import click
-from manet.utils import read_dcm
+from manet.utils import read_dcm, read_image
 from manet.feature.peak import peak_local_max
 from manet.transform.mask import resize, bounding_box
 from manet.plotting.imshow import plot_2d
@@ -44,10 +44,16 @@ def write_image(image, mask, overlay, output, height, dpi, linewidth, bbox, cont
         # If we do not want to show the contour, we set it to None.
         mask_arr = None
 
+    if overlay:
+        overlay, _ = read_image(overlay, force_2d=True)
+
+    min_distance = 37 if local_maxima else False
+
     plot_2d(image, height=height, mask=mask_arr, bboxes=bboxes,
             overlay=overlay, overlay_cmap='jet', overlay_alpha=alpha,
             overlay_contour_color='b', overlay_threshold=threshold,
-            save_as=output, dpi=dpi, linewidth=linewidth)
+            overlay_local_max_min_distance=min_distance, save_as=output,
+            dpi=dpi, linewidth=linewidth)
 
     print('Output written to {}.'.format(output))
 

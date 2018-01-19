@@ -2,7 +2,8 @@
 import numpy as np
 from manet.utils.bbox_utils import _combine_bbox
 from manet._shared.utils import assert_nD, assert_binary
-from skimage.measure import find_contours, approximate_polygon
+from skimage.measure import find_contours, approximate_polygon, regionprops
+from skimage.morphology import label
 from scipy.spatial import Delaunay
 
 
@@ -85,3 +86,34 @@ def triangulate_polygon(polygon):
     """Triangulate a given polyon
     """
     pass
+
+
+def mask_to_coords(mask, get_contours=False):
+    """Convert a mask to the coordinates of the centroids of each label.
+
+    Parameters
+    ----------
+    mask : ndarray
+        binary mask
+    get_contours : bool
+        if True, also output contours
+
+    Returns
+    -------
+    centroids and optionally the coordinates.
+    """
+    assert_nD(mask, 2)
+    assert_binary(mask)
+
+    labels, num_labels = label(mask, background=0, return_num=True)
+    regions = regionprops(labels, mask)
+
+    # We can extract the contours as well, if we want.
+    if get_contours:
+        raise NotImplementedError('Not Implemented. Use find_countours, mask is stored in `intensity_image` property.')
+
+    centroids = []
+    for region in regions:
+        centroids.append(region.centroid)
+
+    return centroids
