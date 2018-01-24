@@ -181,8 +181,7 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
     if not os.path.splitext(filename)[1] == '.dcm':
         raise ValueError('{} should have .dcm as an extension'.format(filename))
 
-    # SimpleITK has issues with unicode string names.
-    sitk_image = sitk.ReadImage(filename.encode('utf-8'))
+    sitk_image = sitk.ReadImage(filename)
     try:
         modality = sitk_image.GetMetaData(_DICOM_MODALITY_TAG)
     except RuntimeError as e:  # The key probably does not exist
