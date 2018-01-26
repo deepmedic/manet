@@ -1,15 +1,13 @@
 # encoding: utf-8
-import ruamel.yaml as yaml
-import simplejson as json
-
+import json
 import logging
 logger = logging.getLogger(__name__)
 
 try:
+    import ruamel.yaml as yaml
     yml_loader = yaml.CLoader
 except ImportError:
-    logger.debug('ruamel.yaml CLoader not available. Falling back to python yaml reader.')
-    yml_loader = yaml.Loader
+    logger.debug('ruamel.yaml not available. YAML functionality will not work.')
 
 
 def write_yml(filename, input_dict):

@@ -187,7 +187,7 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
         raise ValueError('{} should have .dcm as an extension'.format(filename))
 
     # SimpleITK has issues with unicode string names.
-    sitk_image = sitk.ReadImage(filename.encode('utf-8'))
+    sitk_image = sitk.ReadImage(filename)
     try:
         modality = sitk_image.GetMetaData(_DICOM_MODALITY_TAG)
     except RuntimeError as e:  # The key probably does not exist
@@ -267,14 +267,14 @@ def read_dcm_series(path, series_id=None):
 
     metadata = {}
     reader = sitk.ImageSeriesReader()
-    series_ids = list(reader.GetGDCMSeriesIDs(path.encode('utf-8')))
+    series_ids = list(reader.GetGDCMSeriesIDs(path))
     metadata['series_ids'] = series_ids
     if len(series_ids) > 1 and not series_ids:
         image = None
         return image, metadata
 
     fns = reader.GetGDCMSeriesFileNames(
-        path.encode('utf-8'), series_id or series_ids[0])
+        path, series_id or series_ids[0])
     reader.SetFileNames(fns)
     sitk_image = reader.Execute()
 
