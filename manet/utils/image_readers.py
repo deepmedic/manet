@@ -31,7 +31,7 @@ def read_image(filename, force_2d=False, dtype=None, **kwargs):
         image, metadata = read_dcm(filename, **kwargs)
 
     else:
-        sitk_image = sitk.ReadImage(filename)
+        sitk_image = sitk.ReadImage(str(filename))
         image = sitk.GetArrayFromImage(sitk_image)
         if force_2d:
             if image.ndim == 3 and image.shape[0] == 1:
@@ -183,11 +183,11 @@ def read_dcm(filename, window_leveling=True, dtype=None, **kwargs):
     TODO: Rename to read_mammo and rebuild the read_dcm function.
     TODO: Seperate function to only read the dicom header.
     """
-    if not os.path.splitext(filename)[1] == '.dcm':
+    if not os.path.splitext(str(filename))[1] == '.dcm':
         raise ValueError('{} should have .dcm as an extension'.format(filename))
 
     # SimpleITK has issues with unicode string names.
-    sitk_image = sitk.ReadImage(filename)
+    sitk_image = sitk.ReadImage(str(filename))
     try:
         modality = sitk_image.GetMetaData(_DICOM_MODALITY_TAG)
     except RuntimeError as e:  # The key probably does not exist
@@ -267,14 +267,14 @@ def read_dcm_series(path, series_id=None):
 
     metadata = {}
     reader = sitk.ImageSeriesReader()
-    series_ids = list(reader.GetGDCMSeriesIDs(path))
+    series_ids = list(reader.GetGDCMSeriesIDs(str(path)))
     metadata['series_ids'] = series_ids
     if len(series_ids) > 1 and not series_ids:
         image = None
         return image, metadata
 
     fns = reader.GetGDCMSeriesFileNames(
-        path, series_id or series_ids[0])
+        str(path), series_id or series_ids[0])
     reader.SetFileNames(fns)
     sitk_image = reader.Execute()
 
