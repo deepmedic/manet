@@ -68,8 +68,10 @@ def apply_window_level(sitk_image, voi_lut_fn='LINEAR', out_range=[0, 255], whic
     width = sitk_image.GetMetaData(
         _DICOM_WINDOW_WIDTH_TAG).strip()
 
-    explanation = sitk_image.GetMetaData(
-        _DICOM_WINDOW_CENTER_WIDTH_EXPLANATION_TAG).strip()
+    try:
+        explanation = sitk_image.GetMetaData(_DICOM_WINDOW_CENTER_WIDTH_EXPLANATION_TAG).strip()
+    except RuntimeError:
+        explanation = '\\'*len(center.split('\\'))
 
     exp_split = explanation.split('\\')
     if len(exp_split) > 1:
@@ -127,8 +129,11 @@ def apply_window_level_sigmoid(sitk_image, out_range=[0, 255], which_explanation
     width = sitk_image.GetMetaData(
         _DICOM_WINDOW_WIDTH_TAG).strip()
 
-    explanation = sitk_image.GetMetaData(
-        _DICOM_WINDOW_CENTER_WIDTH_EXPLANATION_TAG).strip()
+    try:
+        explanation = sitk_image.GetMetaData(
+            _DICOM_WINDOW_CENTER_WIDTH_EXPLANATION_TAG).strip()
+    except RuntimeError():
+        explanation = ''
 
     exp_split = explanation.split('\\')
     if len(exp_split) > 1:
